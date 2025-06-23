@@ -1,6 +1,8 @@
 # Modular Crypto/Scraping Bot System
 
-A long-running, modular bot system built with Python and asyncio that can scrape data, process it, and send notifications via Telegram.
+Note: Toy problem very seriously and undeniably in the process of progressing forward at a very arbitrary rate embarassingly determined by none other than the heat of the sun and resulting ability of the writer to stay out of the local aprtment pool.
+
+A mdular bot system built with Python and asyncio that can scrape data, process it, and process commands/send notifications via Telegram.
 
 ## Features
 
