@@ -22,44 +22,15 @@ A mdular bot system built with Python and asyncio that can scrape data, process 
 2. Get your user ID by messaging @userinfobot
 3. Copy `env.example` to `.env` and fill in your credentials
 
-### 2. Run with Docker Compose
-
-```bash
-# Build and start the bot
-make bot-up
-
-# View logs
-make bot-logs
-
-# Stop the bot
-make bot-down
-```
-
-### 3. Control via Telegram
-
-Use these commands in your Telegram bot:
-
-- `/start` - Welcome message and help
-- `/status` - Check bot status and statistics
-- `/pause` - Pause bot operations
-- `/resume` - Resume bot operations
-- `/log [N]` - Get last N log lines
-- `/help` - Show all available commands
-
 ## Development
 
 ```bash
+# initialize with a venv and install initial deps
+make init
+
 # Install dependencies
-make dev-install
+make install
 
 # Run locally
 make dev
 ```
-
-## Configuration
-
-Required environment variables in `.env`:
-
-- `TELEGRAM_BOT_TOKEN` - Your Telegram bot token
-
-# cfra_bot

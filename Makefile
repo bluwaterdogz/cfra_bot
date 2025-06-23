@@ -18,8 +18,17 @@ restart:
 clean:
 	docker image rm -f $(IMAGE_NAME) || true
 
+
+init:
+	python3 -m venv .venv && \
+	source .venv/bin/activate && \
+	pip install -r requirements.txt
+
 install:
 	python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+
+
+
 
 run-local:
 	source .venv/bin/activate && python3 -m app.main
