@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  crypto-funding-arbitrage-bot:
+    build: .
+    env_file:
+      - .env
+    command: python -m app.main

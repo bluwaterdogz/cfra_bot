@@ -51,7 +51,7 @@ Use these commands in your Telegram bot:
 make dev-install
 
 # Run locally
-make dev-run
+make dev
 ```
 
 ## Configuration
@@ -59,6 +59,5 @@ make dev-run
 Required environment variables in `.env`:
 
 - `TELEGRAM_BOT_TOKEN` - Your Telegram bot token
-- `TELEGRAM_USER_ID` - Your Telegram user ID
-- `POLL_INTERVAL` - Scraping cycle interval (seconds, default: 60)
+
 # cfra_bot

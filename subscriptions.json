@@ -1,0 +1,17 @@
+[
+  {
+    "type": "keyword_match",
+    "keyword": "bitcoin",
+    "notify": ["email:b@example.com", "sms:+123456789"]
+  },
+  {
+    "type": "keyword_match",
+    "keyword": "ethereum",
+    "notify": ["webhook:https://hooks.slack.com/services/xxx/yyy/zzz"]
+  },
+  {
+    "type": "keyword_match",
+    "keyword": "crypto",
+    "notify": ["email:alerts@example.com"]
+  }
+]
