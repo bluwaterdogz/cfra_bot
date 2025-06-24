@@ -18,23 +18,27 @@ restart:
 clean:
 	docker image rm -f $(IMAGE_NAME) || true
 
-
 init:
 	python3 -m venv .venv && \
-	source .venv/bin/activate && \
+	. .venv/bin/activate && \
 	pip install -r requirements.txt
 
 install:
-	python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+	python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+
+listen:
+	. .venv/bin/activate && python3 -m app.main -l
+
+run:
+	. .venv/bin/activate && python3 -m app.main
 
 
-
-
-run-local:
-	source .venv/bin/activate && python3 -m app.main
+dev-listen:
+	. .venv/bin/activate && watchfiles 'python3 -m app.main -l'
 
 dev:
-	source .venv/bin/activate && watchfiles 'python3 -m app.main'
+	. .venv/bin/activate && watchfiles 'python3 -m app.main'
+	
 
 # Run all tests using the virtual environment
 test:

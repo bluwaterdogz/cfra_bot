@@ -12,6 +12,11 @@ from app.crypto_funding_arbitrage.executors.crypto_funding_arbitrage_strategy_ex
 from app.crypto_funding_arbitrage.aggregator.crypto_funding_arbitrage_data_aggregator import CryptoFundingArbitrageDataAggregator
 from app.trade.symbols.kraken import KRAKEN_SYMBOLS
 from app.trade.symbols.binance import BINANCE_SYMBOLS
+import argparse
+
+DEFAULT_EXCHANGE = "binance"
+DEFAULT_STRATEGY = "cfrashort"
+MAX_THREADS = 10
 
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -48,17 +53,28 @@ def select_cli_option():
 
     return exchange_name, strategy_name
 
+def parse_telegram_command(message):
+    parts = message.text.strip().split()
+    command = parts[0]
+    exchange = DEFAULT_EXCHANGE
+    strategy = DEFAULT_STRATEGY
+    print(f"[DEBUG] Parts: {parts}")
+    if len(parts) == 2:
+        strategy = parts[1]
+    elif len(parts) == 3:
+        exchange = parts[1]
+        strategy = parts[2]
+    elif len(parts) > 3:
+        bot.reply_to(message, "Usage: /run [<exchange>] <strategy>")
+        return None, None, None
+
+    return command, exchange, strategy
 
 # --- Telegram handler ---
 @bot.message_handler(commands=["run"])
 def handle_telegram_command(message):
     try:
-        parts = message.text.split()
-        if len(parts) != 3:
-            bot.reply_to(message, "Usage: /run <exchange> <strategy>")
-            return
-
-        _, exchange, strategy = parts
+        _, exchange, strategy = parse_telegram_command(message)
 
         # Run in new event loop inside thread
         def run_in_thread():        
@@ -69,37 +85,62 @@ def handle_telegram_command(message):
                     handle_signals=lambda reply_message: bot.reply_to(message, reply_message)
                 )
             )
-
-        threading.Thread(target=run_in_thread).start()
-        bot.reply_to(message, f"Running `{strategy}` on `{exchange}`...")
+        if threading.active_count() < MAX_THREADS:
+            threading.Thread(target=run_in_thread).start()
+            bot.reply_to(message, f"Running `{strategy}` on `{exchange}`...")
+        else:
+            print(f"[DEBUG] Too many threads: {threading.active_count()}")
 
     except Exception as e:
+        print(f"[DEBUG] Error: {e}")
         bot.reply_to(message, f"Error: {e}")
+
+@bot.message_handler(commands=["help"])
+def handle_telegram_help(message):
+    bot.reply_to(message, "Usage: /run <exchange> <strategy>, \nExchanges: " + ", ".join(EXCHANGES) + ", \nStrategies: " + ", ".join(STRATEGIES))
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Run crypto strategy on selected exchange.")
+    parser.add_argument(
+        "--listen", "-l",
+        dest="listen",
+        action="store_true",
+        help="Enable Telegram bot listening (default: False)"
+    )
+    parser.add_argument(
+        "--exchange", "-ex",
+        type=str,
+        choices=EXCHANGES,
+        default=DEFAULT_EXCHANGE,
+        help="Exchange to use (default: binance)"
+    )
+    parser.add_argument(
+        "--strategy", "-strat",
+        type=str,
+        choices=STRATEGIES,
+        default=DEFAULT_STRATEGY,
+        help="Trading strategy to run (default: cfrashort)"
+    )
+    args = parser.parse_args()
+    return args
+
+async def main():
+    args = get_args()
+
+    if args.listen:
+        print("\n[Telegram bot is now listening...]\n")
+        bot.infinity_polling()
+    else:
+        print(f"Running strategy: {args.strategy}")
+        print(f"Using exchange: {args.exchange}")
+        await run_async_strategy(
+            args.exchange, 
+            args.strategy, 
+            lambda reply_message: print(reply_message)
+        )
 
 
 # --- Main entrypoint ---
 if __name__ == "__main__":
-    # try:
-    #     exchange_name, strategy_name = select_cli_option()
-    #     asyncio.run(run_async_strategy(exchange_name, strategy_name))
-    # except KeyboardInterrupt:
-    #     print("Exiting interactive mode.")
-
-    print("\n[Telegram bot is now listening...]\n")
-    bot.infinity_polling()
-
-async def main():
-    exchange_client = get_exchange_by_name("kraken")
-    
-    aggregator = CryptoFundingArbitrageDataAggregator(exchange_client, KRAKEN_SYMBOLS)
-
-    strategy = get_strategy_by_name("funding_rate_arbitrage", exchange_client)
-
-    # 5. Fetch market data for all symbols
-    market_data_list = await aggregator.fetch_all()
-
-    # 6. Evaluate and optionally act on each symbol
-    executor = CryptoFundingArbitrageStrategyExecutor(strategy)
-    await executor.run(market_data_list)
-
-
+    asyncio.run(main())     # run the main function
